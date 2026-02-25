@@ -8,7 +8,7 @@ st.set_page_config(page_title="TAHA - رفيقك النفسي", page_icon="💬"
 API_KEY = st.secrets["GEMINI_API_KEY"]
 
 # إعداد نموذج جوجل
-genai.configure(api_key=API_KEY)
+genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
 st.title("TAHA - رفيقك النفسي 💬")
