@@ -1,150 +1,39 @@
-import os
-
 import streamlit as st
 import google.generativeai as genai
 
+# إعدادات واجهة التطبيق
+st.set_page_config(page_title="TAHA - رفيقك النفسي", page_icon="💬")
 
-st.set_page_config(
-    page_title="TAHA - رفيقك النفسي",
-    page_icon="💬",
-    layout="centered",
-)
+# وضع المفتاح الخاص بك مباشرة (المفتاح الذي استخرجته في الصورة رقم 3)
+API_KEY = "AIzaSyCTyiA2f7QiDXSI9Wdn2xBHVK3ZBEB0m3k"
 
+# إعداد نموذج جوجل
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", None) or os.getenv("GEMINI_API_KEY")
+st.title("TAHA - رفيقك النفسي 💬")
+st.write("أنا هنا لأسمعك.. فضفض لي بما يجول في خاطرك.")
 
-if not GEMINI_API_KEY:
-    st.error(
-        "يرجى ضبط مفتاح واجهة Gemini API في `st.secrets['GEMINI_API_KEY']` "
-        "أو في متغير البيئة `GEMINI_API_KEY` قبل تشغيل التطبيق."
-    )
-    st.stop()
+# ذاكرة المحادثة
+if "chat_history" not in st.session_state:
+st.session_state.chat_history = []
 
-genai.configure(api_key=GEMINI_API_KEY)
+# عرض الرسائل السابقة
+for msg in st.session_state.chat_history:
+with st.chat_message(msg["role"]):
+st.markdown(msg["content"])
 
+# صندوق المحادثة
+if prompt := st.chat_input("كيف تشعر اليوم؟"):
+# إضافة رسالة المستخدم وعرضها
+st.session_state.chat_history.append({"role": "user", "content": prompt})
+with st.chat_message("user"):
+st.markdown(prompt)
 
-SYSTEM_PROMPT = """
-أنت "TAHA"؛ رفيق نفسي افتراضي ودود يتحدث العربية الفصحى بلغة بسيطة وواضحة.
-دورك الأساسي هو الاستماع بحضور وتعاطف، ومساعدة المستخدم على التعبير عن مشاعره
-وفهمها، دون إصدار أحكام أو تشخيصات طبية.
-
-المبادئ الأساسية في أسلوبك:
-1. الاستماع الفعّال:
-   - أظهِر أنك فهمت ما يقوله المستخدم بإعادة صياغة ما يقوله باختصار.
-   - ركّز على المشاعر (مثل: الحزن، القلق، الوحدة، الغضب، الخوف، الإرهاق...).
-   - استخدم عبارات تعاطف مثل: "أفهم أن هذا شعور صعب"، "من الطبيعي أن تشعر بهذا"،
-     "يبدو أن ما مررت به كان مرهقًا حقًا".
-
-2. عدم إصدار الأحكام:
-   - تجنّب أي أسلوب توبيخ أو لوم أو تحقير.
-   - لا تستخدم عبارات مثل "يجب عليك" أو "من الخطأ أن تفعل"، واستبدلها بعبارات
-     أكثر لطفًا مثل: "قد يساعدك أن تحاول..." أو "ربما يكون من المفيد أن...".
-
-3. طرح أسئلة لطيفة تساعد على الاستبصار:
-   - استخدم أسئلة مفتوحة غير ضاغطة مثل:
-     "ما أكثر شيء يزعجك في هذه التجربة؟"
-     "كيف أثّر هذا عليك في يومك أو حياتك؟"
-     "ما الأشياء القليلة التي تعطيك شعورًا بالراحة الآن؟"
-
-4. عدم تقديم تشخيص أو علاج طبي:
-   - لا تُشخّص حالات (مثل: اكتئاب، اضطراب قلق، وسواس، اضطراب شخصية...).
-   - لا تذكر أسماء أدوية ولا جرعات ولا خطط علاجية طبية.
-   - يمكنك تقديم نصائح عامة لتحسين الرفاه النفسي (تنظيم النوم، ممارسة نشاط بسيط،
-     الحديث مع شخص موثوق، طلب مساعدة مختص...).
-
-5. توضيح الحدود المهنية:
-   - أكّد بلطف أنك لست بديلاً عن الأطباء أو المعالجين النفسيين.
-   - شجّع المستخدم على طلب مساعدة مختص مرخَّص إذا كانت معاناته شديدة أو مستمرة.
-
-6. الحالات الطارئة / الأفكار الانتحارية:
-   - إذا ذكر المستخدم إيذاء النفس أو الانتحار أو نية إيذاء الآخرين:
-     * عبّر أولًا عن تعاطف صادق مع شدة ألمه.
-     * ثم أكّد بوضوح أنك لا تستطيع التعامل مع حالات الطوارئ.
-     * شجّعه فورًا على التواصل مع:
-       - خدمات الطوارئ في بلده، أو
-       - أقرب مستشفى، أو
-       - خط مساعدة أو دعم نفسي محلي إن وُجد.
-     * لا تقدّم نصائح تفصيلية حول إيذاء النفس ولا تُشجّع عليها بأي شكل.
-
-7. أسلوب الكتابة:
-   - استخدم فقرات قصيرة وجُملاً واضحة.
-   - تجنّب المصطلحات النفسية المعقّدة قدر الإمكان.
-   - ركّز دائمًا على التخفيف عن المستخدم ومساندته عاطفيًا.
-   - شجّع على خطوات صغيرة واقعية بدلاً من حلول مثالية صعبة.
-
-تذكّر:
-- هدفك أن يشعر المستخدم بأنه مسموع ومفهوم وآمن.
-- ساعده على تسمية مشاعره، وأن يشعر أن معاناته لا تقلّل من قيمته.
-- قدّم إجاباتك بالكامل باللغة العربية.
-"""
-
-
-model = genai.GenerativeModel(
-    model_name="gemini-1.5-flash",
-    system_instruction=SYSTEM_PROMPT,
-)
-
-
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "chat" not in st.session_state:
-    st.session_state.chat = model.start_chat(history=[])
-
-
-with st.sidebar:
-    st.title("TAHA - رفيق نفسي ودود")
-
-    st.markdown("### ⚠️ تنبيه مهم / إخلاء مسؤولية")
-    st.markdown(
-        """
-**هذا التطبيق ليس خدمة طبية أو علاجًا نفسيًا محترفًا.**
-
-- لا يقدّم تشخيصًا طبيًا أو نفسيًا.
-- لا يُعتبر بديلًا عن استشارة الأطباء أو الأخصائيين النفسيين المرخَّصين.
-- المعلومات والمقترحات هنا ذات طابع عام لدعمك عاطفيًا فقط.
-
-إذا كنت:
-- تشعر برغبة في إيذاء نفسك أو الآخرين،
-- تمرّ بحالة طارئة أو خطر مباشر على حياتك أو حياة شخص آخر،
-
-**فيرجى التوجّه فورًا إلى أقرب قسم طوارئ أو الاتصال بخدمات الطوارئ في بلدك،**
-أو التواصل مع أخصائي صحة نفسية أو خط مساعدة محلي إن وُجد.
-
-باستخدامك لهذا التطبيق، فأنت تقرّ بأنك تفهم هذه الحدود وتوافق عليها.
-        """
-    )
-
-
-st.title("TAHA 🤍")
-st.caption("رفيقك النفسي الافتراضي للاستماع والتفريغ باللغة العربية.")
-
-
-for msg in st.session_state.messages:
-    with st.chat_message("user" if msg["role"] == "user" else "assistant"):
-        st.markdown(msg["content"])
-
-
-user_input = st.chat_input("اكتب ما تشعر به أو ما ترغب في مشاركته هنا...")
-
-if user_input:
-    st.session_state.messages.append({"role": "user", "content": user_input})
-    with st.chat_message("user"):
-        st.markdown(user_input)
-
-    try:
-        chat = st.session_state.chat
-        response = chat.send_message(user_input)
-        assistant_reply = response.text.strip()
-    except Exception:
-        assistant_reply = (
-            "حدث خطأ أثناء التواصل مع نموذج Gemini. "
-            "يرجى التحقق من إعدادات المفتاح أو المحاولة لاحقًا."
-        )
-
-    st.session_state.messages.append(
-        {"role": "assistant", "content": assistant_reply}
-    )
-    with st.chat_message("assistant"):
-        st.markdown(assistant_reply)
-
+# جلب رد الذكاء الاصطناعي
+system_instruction = "أنت رفيق نفسي ودود اسمك طه، استمع بإنصات وتحدث بالعربية الدافئة."
+response = model.generate_content(f"{system_instruction}\nالمستخدم: {prompt}")
+# إضافة رد البوت وعرضه
+with st.chat_message("assistant"):
+st.markdown(response.text)
+st.session_state.chat_history.append({"role": "assistant", "content": response.text})
