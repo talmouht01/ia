@@ -2,9 +2,9 @@ import streamlit as st
 import google.generativeai as genai
 
 # إعدادات واجهة التطبيق
-st.set_page_config(page_title="TAHA - رفيقك النفسي", page_icon="💬")
+st.set_page_config(page_title="TAHA - رفيقك نفسي", page_icon="💬")
 
-# وضع المفتاح الخاص بك مباشرة (المفتاح الذي استخرجته في الصورة رقم 3)
+# وضع المفتاح الخاص بك مباشرة (المفتاح الذي ينتهي بـ 0m3k)
 API_KEY = "AIzaSyCTyiA2f7QiDXSI9Wdn2xBHVK3ZBEB0m3k"
 
 # إعداد نموذج جوجل
@@ -14,7 +14,7 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 st.title("TAHA - رفيقك النفسي 💬")
 st.write("أنا هنا لأسمعك.. فضفض لي بما يجول في خاطرك.")
 
-# ذاكرة المحادثة
+# ذاكرة المحادثة (تأكد من وجود المسافات هنا)
 if "chat_history" not in st.session_state:
 st.session_state.chat_history = []
 
