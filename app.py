@@ -5,7 +5,7 @@ import google.generativeai as genai
 st.set_page_config(page_title="TAHA - رفيقك النفسي", page_icon="💬")
 
 # وضع المفتاح الخاص بك مباشرة (المفتاح الذي استخرجته في الصورة رقم 3)
-API_KEY = "AIzaSyCTyiA2f7QiDXSI9Wdn2xBHVK3ZBEB0m3k"
+API_KEY = st.secrets["GEMINI_API_KEY"]
 
 # إعداد نموذج جوجل
 genai.configure(api_key=API_KEY)
