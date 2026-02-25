@@ -4,8 +4,14 @@ import google.generativeai as genai
 # إعدادات واجهة التطبيق
 st.set_page_config(page_title="TAHA - رفيقك النفسي", page_icon="💬")
 
-# وضع المفتاح الخاص بك مباشرة (المفتاح الذي استخرجته في الصورة رقم 3)
-API_KEY = st.secrets["GEMINI_API_KEY"]
+# Gestion de la clé API : récupération depuis secrets.toml ou demande à l'utilisateur
+if "GEMINI_API_KEY" in st.secrets:
+    GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
+else:
+    GEMINI_API_KEY = st.text_input("Veuillez entrer votre GEMINI_API_KEY :", type="password")
+    if not GEMINI_API_KEY:
+        st.warning("Veuillez fournir une clé GEMINI_API_KEY pour utiliser l'application.")
+        st.stop()
 
 # إعداد نموذج جوجل
 genai.configure(api_key=GEMINI_API_KEY)
@@ -34,6 +40,10 @@ if prompt := st.chat_input("كيف تشعر اليوم؟"):
 	# جلب رد الذكاء الاصطناعي
 	system_instruction = "أنت رفيق نفسي ودود اسمك طه، استمع بإنصات وتحدث بالعربية الدافئة."
 	response = model.generate_content(f"{system_instruction}\nالمستخدم: {prompt}")
+	# إضافة رد البوت وعرضه
+	with st.chat_message("assistant"):
+		st.markdown(response.text)
+	st.session_state.chat_history.append({"role": "assistant", "content": response.text})
 	# إضافة رد البوت وعرضه
 	with st.chat_message("assistant"):
 		st.markdown(response.text)
