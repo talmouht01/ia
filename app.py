@@ -16,7 +16,7 @@ if API_KEY:
     try:
         genai.configure(api_key=API_KEY)
         # التأكد من وجود اسم النموذج الصحيح
-        model = genai.GenerativeModel("gemini-pro")
+        model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
         st.title("TAHA - رفيقك النفسي 💬")
         st.write("أنا هنا لأسمعك.. فضفض لي بما يجول في خاطرك.")
