@@ -8,7 +8,7 @@ st.set_page_config(page_title="TAHA - رفيقك النفسي", page_icon="💬"
 if "GEMINI_API_KEY" in st.secrets:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
 else:
-    GEMINI_API_KEY = st.text_input("AIzaSyCTyiA2f7QiDXSI9Wdn2xBHVK3ZBEB0m3k :", type="password")
+    GEMINI_API_KEY = st.text_input("Veuillez entrer votre GEMINI_API_KEY :", type="password")
     if not GEMINI_API_KEY:
         st.warning("Veuillez fournir une clé GEMINI_API_KEY pour utiliser l'application.")
         st.stop()
